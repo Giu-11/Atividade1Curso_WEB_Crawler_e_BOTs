@@ -207,8 +207,10 @@ class Crawler:
 
 
 if __name__ == '__main__':
+
     crawler = Crawler()
     db = Database()
+
     previsoes = crawler.organiza_informacoes()
     for dia in previsoes:
         db.nova_previsao(dia)

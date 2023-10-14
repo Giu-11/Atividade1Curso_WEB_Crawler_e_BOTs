@@ -32,11 +32,14 @@ class Database:
         if result is None:
             print('informação não encontrada')
         else:
-            print('A temperatura máxima é de', result['tmax'], ' a minima de', result['tmin'],
+            print('A temperatura máxima para', result['dia'], ' é de', result['tmax'], ' a minima de', result['tmin'],
                   ' e há uma chance de', result['chuva'], ' de chover')
 
 
 # teste para checar se a função de procura funciona
 if __name__ == '__main__':
     db = Database()
+    db.procura('13-10-2023')
+    db.procura('14-10-2023')
     db.procura('amanha')
+    db.procura('depois')

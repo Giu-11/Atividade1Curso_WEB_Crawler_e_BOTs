@@ -38,11 +38,15 @@ class Crawler:
             chancechuva[i] = int(chancechuva[i].strip('°º% '))
 
         for i in range(3):  # organiza as informações de 3 dias em um dicionário e adiciona ele a lista de previsões
-            previsao_dia = {
-                'tmax': tempmax[i],
-                'tmin': tempmin[i],
-                'chuva': chancechuva[i]
-            }
+            try:
+                previsao_dia = {
+                    'tmax': tempmax[i],
+                    'tmin': tempmin[i],
+                    'chuva': chancechuva[i]
+                }
+            except IndexError:
+                print('Tempo não tem chance de chuva para', i)
+
             previsoes.append(previsao_dia)
 
         print('Tempo:')  # da print em cada dícionario da lista de previsões
@@ -188,16 +192,16 @@ class Crawler:
                     n_sites_chuva += 1
 
             previsao_dia['tmax'] //= n_sites
-            previsao_dia['tmax'] = str(previsao_dia['tmax'])+'°'
+            previsao_dia['tmax'] = str(previsao_dia['tmax']) + '°'
 
             previsao_dia['tmin'] //= n_sites
-            previsao_dia['tmin'] = str(previsao_dia['tmin'])+'°'
+            previsao_dia['tmin'] = str(previsao_dia['tmin']) + '°'
 
             previsao_dia['chuva'] //= n_sites_chuva
-            previsao_dia['chuva'] = str(previsao_dia['chuva'])+'%'
+            previsao_dia['chuva'] = str(previsao_dia['chuva']) + '%'
 
             info_organizada.append(previsao_dia)
-        
+
         print('\nprevisão média:')
         for i in info_organizada:
             print(i)
@@ -205,9 +209,14 @@ class Crawler:
         # por enquanto não da return nas informações, deve ser colocado depois para que outra função coloque no banco
         return info_organizada
 
+    def coloca_no_db(self, db):
+        previsoes = crawler.organiza_informacoes()
+
+        for dia in previsoes:
+            db.nova_previsao(dia)
+
 
 if __name__ == '__main__':
-
     crawler = Crawler()
     db = Database()
 
@@ -216,6 +225,7 @@ if __name__ == '__main__':
         db.nova_previsao(dia)
 
     # por enquanto o agendamento do horário está como comentário para facilitar testes, mas está funcionando!
-    '''schedule.every().day.at("05:00").do(crawler.organiza_informacoes)  # pega a previsão do tempo as 05h
+    '''schedule.every().day.at("05:00").do(crawler.coloca_no_db, db)  # pega a previsão do tempo as 05h
+
     while True:
         schedule.run_pending()'''

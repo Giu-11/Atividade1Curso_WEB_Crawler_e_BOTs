@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from datetime import date
 import schedule
 from database import Database
+from bot import BOT
 
 
 class Crawler:
@@ -192,13 +193,16 @@ class Crawler:
                     n_sites_chuva += 1
 
             previsao_dia['tmax'] //= n_sites
+            previsao_dia['tmin'] //= n_sites
+            previsao_dia['chuva'] //= n_sites_chuva
+
+            # a formatação dos valores agora será no bot.py
+            '''
             previsao_dia['tmax'] = str(previsao_dia['tmax']) + '°'
 
-            previsao_dia['tmin'] //= n_sites
             previsao_dia['tmin'] = str(previsao_dia['tmin']) + '°'
 
-            previsao_dia['chuva'] //= n_sites_chuva
-            previsao_dia['chuva'] = str(previsao_dia['chuva']) + '%'
+            previsao_dia['chuva'] = str(previsao_dia['chuva']) + '%' '''
 
             info_organizada.append(previsao_dia)
 
@@ -219,10 +223,14 @@ class Crawler:
 if __name__ == '__main__':
     crawler = Crawler()
     db = Database()
+    bot = BOT()
 
     previsoes = crawler.organiza_informacoes()
     for dia in previsoes:
         db.nova_previsao(dia)
+        print('foi', dia)
+
+    bot.post(previsoes[0])
 
     # por enquanto o agendamento do horário está como comentário para facilitar testes, mas está funcionando!
     '''schedule.every().day.at("05:00").do(crawler.coloca_no_db, db)  # pega a previsão do tempo as 05h

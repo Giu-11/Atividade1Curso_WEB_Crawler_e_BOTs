@@ -1,5 +1,22 @@
-# Atividade1Curso_WEB_Crawler_e_BOTs
-webcrawler.py mostra as informações da previsão do tempo dos proximos 3 dias para os sites tempo.com, cptec.inpe.br e G1 para feira de santana
-somente é pega a chance de chiuva de tempo.com e cptec.inpe.br
+Feito para um curso de web crawling e bot no twitter/X
 
-é nescessario que o usuario somente execute o programa para que esse mostre essas informações
+- [bibliotecas](#bibliotecas)
+
+informacçõs retiradas dos sites Tempo, cptec, weather, g1 e accuweather
+
+
+  
+
+- webcraler para obter a previsão do tempo
+- informações guardadas no mongodb
+- posts diarios no twitter/x
+
+### bibliotecas 
+- tweepy
+- dotenv
+- os
+- pymongo
+- bealtifulsoup4
+- requests
+- datetime
+- schadule

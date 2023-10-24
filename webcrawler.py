@@ -213,11 +213,13 @@ class Crawler:
         # por enquanto não da return nas informações, deve ser colocado depois para que outra função coloque no banco
         return info_organizada
 
-    def coloca_no_db(self, db):
+    def tarefas_diarias(self, db, bot):
         previsoes = crawler.organiza_informacoes()
 
         for dia in previsoes:
             db.nova_previsao(dia)
+
+        bot.post(previsoes[0])
 
 
 if __name__ == '__main__':
@@ -233,7 +235,7 @@ if __name__ == '__main__':
     bot.post(previsoes[0])
 
     # por enquanto o agendamento do horário está como comentário para facilitar testes, mas está funcionando!
-    '''schedule.every().day.at("05:00").do(crawler.coloca_no_db, db)  # pega a previsão do tempo as 05h
+    '''schedule.every().day.at("05:00").do(tarefas_diarias, db, bot)  # pega a previsão do tempo as 05h
 
     while True:
         schedule.run_pending()'''

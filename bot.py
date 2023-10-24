@@ -43,7 +43,7 @@ class BOT:
                 textchuva = '\U0001F327' + textchuva
 
         if 'tmax' in info and 'tmin' in info:
-            texttemperatura = ' • \U0001F321 temperatura máxima é de ' + str(info['tmax']) + '° \U0001F525'
+            texttemperatura = '\U0001F321 • temperatura máxima é de ' + str(info['tmax']) + '° \U0001F525'
             texttemperatura += 'e a mínima de ' + str(info['tmin']) + '° \U00002744 \n'
 
         full_text = texttemperatura+textchuva

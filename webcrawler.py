@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from datetime import date
+import time
 import schedule
 from database import Database
 from bot import BOT
@@ -21,38 +22,44 @@ class Crawler:
 
         # procura pelas temperaturas mínimas
         tempmin = inicial.findAll('span', {'class': 'min changeUnitT'})
-        for i in range(len(tempmin)):
-            tempmin[i] = tempmin[i].text  # separa somente o texto da temperatura
-            tempmin[i] = tempmin[i].strip('°')
-            tempmin[i] = int(tempmin[i].strip('°º '))
+        for h in range(len(tempmin)):
+            tempmin[h] = tempmin[h].text  # separa somente o texto da temperatura
+            tempmin[h] = tempmin[h].strip('°')
+            tempmin[h] = int(tempmin[h].strip('°º '))
 
         # procura pelas temperaturas máximas
         tempmax = (inicial.findAll('span', {'class': 'max changeUnitT'}))
-        for i in range(len(tempmax)):
-            tempmax[i] = tempmax[i].text  # separa somente o texto da temperatura
-            tempmax[i] = int(tempmax[i].strip('°º '))
+
+        for h in range(len(tempmax)):
+            tempmax[h] = tempmax[h].text  # separa somente o texto da temperatura
+            tempmax[h] = int(tempmax[h].strip('°º '))
 
         # procura pelas chances de chuva
         chancechuva = (inicial.findAll('span', {'class': 'txt-strng probabilidad center'}))
-        for i in range(len(chancechuva)):
-            chancechuva[i] = chancechuva[i].text  # separa somente o texto da chance
-            chancechuva[i] = int(chancechuva[i].strip('°º% '))
-
-        for i in range(3):  # organiza as informações de 3 dias em um dicionário e adiciona ele a lista de previsões
+        for h in range(len(chancechuva)):
+            chancechuva[h] = chancechuva[h].text  # separa somente o texto da chance
+            chancechuva[h] = int(chancechuva[h].strip('°º% '))
+        previsao_dia = {}
+        for h in range(3):  # organiza as informações de 3 dias em um dicionário e adiciona ele a lista de previsões
             try:
-                previsao_dia = {
-                    'tmax': tempmax[i],
-                    'tmin': tempmin[i],
-                    'chuva': chancechuva[i]
-                }
+                previsao_dia['tmax'] = tempmax[h]
+                previsao_dia['tmin'] = tempmin[h]
             except IndexError:
-                print('Tempo não tem chance de chuva para', i)
+                print('Tempo não tem temperatura para', h)
 
-            previsoes.append(previsao_dia)
+            try:
+                previsao_dia['chuva'] = chancechuva[h]
+            except IndexError:
+                print('Tempo não tem chance de chuva para', h)
+
+            try:
+                previsoes.append(previsao_dia)
+            except IndexError:
+                print('nada em tempo')
 
         print('Tempo:')  # da print em cada dícionario da lista de previsões
-        for i in previsoes:
-            print(i)
+        for h in previsoes:
+            print(h)
 
         return previsoes
 
@@ -156,6 +163,14 @@ class Crawler:
             chancechuva[i] = chancechuva[i].text
             chancechuva[i] = int(chancechuva[i].strip('Chance of Rain°º %'))
 
+        '''induv = inicial.find('span', {'data-testid': 'UVIndexValue'})
+        print(induv)
+        for i in range(len(induv)):
+            induv = induv.text
+            induv = induv[0:2]
+            induv = int(induv.strip('of '))
+            print(induv, ' indicie UV')'''
+
         for i in range(3):
             previsao_dia = {
                 'tmax': tempmax[i],
@@ -163,6 +178,7 @@ class Crawler:
                 'chuva': chancechuva[i]
             }
             previsoes.append(previsao_dia)
+        # previsoes[0]['ind_uv'] = induv
 
         print('Weather:')
         for i in previsoes:
@@ -170,15 +186,42 @@ class Crawler:
 
         return previsoes
 
+    def procura_em_tutiempo(self):
+        inicial = self.info('https://pt.tutiempo.net/indice-ultravioleta/feira-de-santana.html')
+
+        previsoes = []
+
+        ind_uv_h = inicial.findAll('span', {'class': 'ener'})
+
+        ind_uv = [ind_uv_h[0:10], ind_uv_h[10:20], ind_uv_h[20:30]]
+
+        horas = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16]  # horas que aparecem no site para cada valor UV
+
+        for i in range(len(ind_uv)):
+            for h in range(len(ind_uv[i])):
+                ind_uv[i][h] = int(ind_uv[i][h].text)
+
+            previsao_dia = {
+                'ind_uv': max(ind_uv[i]),
+                'h_uv': horas[ind_uv[i].index(max(ind_uv[i]))]  # usa o indice do uv maximo para saber a hora
+                # hora do maximo indicie UV do dia
+            }
+
+            previsoes.append(previsao_dia)
+
+        return previsoes
+
     # organiza as informações dos sites em uma só lista fazendo a média das temperaturas e chances de chuva
     def organiza_informacoes(self):
-        info = [self.procura_em_tempo(), self.procura_em_cptec(), self.procura_em_g1(), self.procura_em_wather()]
-        n_sites = len(info)
+        info = [self.procura_em_tempo(), self.procura_em_cptec(), self.procura_em_g1(), self.procura_em_wather(),
+                self.procura_em_tutiempo()]
         info_organizada = []
         dias = [(date.today().strftime('%d-%m-%Y')), 'amanha', 'depois']
 
         for dia in range(3):
             n_sites_chuva = 0
+            n_sites_temp = 0
+            n_sites_uv = 0
             previsao_dia = {
                 'tmax': 0,
                 'tmin': 0,
@@ -186,15 +229,22 @@ class Crawler:
                 'dia': dias[dia]
             }
             for site in info:
-                previsao_dia['tmax'] += site[dia]['tmax']
-                previsao_dia['tmin'] += site[dia]['tmin']
+                if 'tmax' in site[dia] and 'tmin' in site[dia]:
+                    previsao_dia['tmax'] += site[dia]['tmax']
+                    previsao_dia['tmin'] += site[dia]['tmin']
+                    n_sites_temp += 1
                 if 'chuva' in site[dia]:
                     previsao_dia['chuva'] += site[dia]['chuva']
                     n_sites_chuva += 1
+                if 'ind_uv' in site[dia]:
+                    previsao_dia['ind_uv'] = site[dia]['ind_uv']
+                    previsao_dia['h_uv'] = site[dia]['h_uv']
+                    n_sites_uv += 1
 
-            previsao_dia['tmax'] //= n_sites
-            previsao_dia['tmin'] //= n_sites
+            previsao_dia['tmax'] //= n_sites_temp
+            previsao_dia['tmin'] //= n_sites_temp
             previsao_dia['chuva'] //= n_sites_chuva
+            previsao_dia['ind_uv'] //= n_sites_uv
 
             # a formatação dos valores agora será no bot.py
             '''
@@ -235,7 +285,8 @@ if __name__ == '__main__':
     bot.post(previsoes[0])
 
     # por enquanto o agendamento do horário está como comentário para facilitar testes, mas está funcionando!
-    '''schedule.every().day.at("05:00").do(tarefas_diarias, db, bot)  # pega a previsão do tempo as 05h
+    '''schedule.every().day.at("05:00").do(crawler.tarefas_diarias, db, bot)  # pega a previsão do tempo as 05h
 
     while True:
-        schedule.run_pending()'''
+        schedule.run_pending()
+        time.sleep(1)'''

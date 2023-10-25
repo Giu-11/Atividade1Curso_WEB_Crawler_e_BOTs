@@ -14,7 +14,7 @@ class Database:
         db = cliente['tempo']
         return db.tempo
 
-    def nova_previsao(self, previsao: dict):
+    def nova_previsao(self, previsao: dict):  # adiciona a previsão do dia no banco
         procura = {'dia': previsao['dia']}
         result = self.tempo.find_one(procura)
 
@@ -26,7 +26,7 @@ class Database:
                 self.tempo.delete_one({'dia': previsao['dia']})
                 self.tempo.insert_one(previsao)
 
-    def procura(self, dia):
+    def procura(self, dia):  # procura por uma informação no banco de dados segundo o dia
         procura = {'dia': dia}
         result = self.tempo.find_one(procura)
 

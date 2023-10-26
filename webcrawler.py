@@ -212,8 +212,8 @@ class Crawler:
         return previsoes
 
     # organiza as informações dos sites em uma só lista fazendo a média das temperaturas e chances de chuva
-    def organiza_informacoes(self):
-        info = [self.procura_em_tempo(), self.procura_em_cptec(), self.procura_em_g1(), self.procura_em_wather(),
+    def organiza_informacoes(self):  # g1 dava valores muito diferentes para temperatura, por isso foi tirado
+        info = [self.procura_em_tempo(), self.procura_em_cptec(), self.procura_em_wather(),
                 self.procura_em_tutiempo()]
         info_organizada = []
         dias = [(date.today().strftime('%d-%m-%Y')), 'amanha', 'depois']
@@ -285,7 +285,8 @@ if __name__ == '__main__':
     bot.post(previsoes[0])
 
     # por enquanto o agendamento do horário está como comentário para facilitar testes, mas está funcionando!
-    '''schedule.every().day.at("05:00").do(crawler.tarefas_diarias, db, bot)  # pega a previsão do tempo as 05h
+    '''
+    schedule.every().day.at("05:00").do(crawler.tarefas_diarias, db, bot)  # pega a previsão do tempo as 05h
 
     while True:
         schedule.run_pending()

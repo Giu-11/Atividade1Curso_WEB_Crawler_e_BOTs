@@ -63,5 +63,5 @@ class BOT:
 
         full_text = texttemperatura+textchuva+textuv  # junta os textos
         c = self.client
-        #c.create_tweet(text=full_text)  # postas as informações
+        c.create_tweet(text=full_text)  # postas as informações
         print('\n', full_text)

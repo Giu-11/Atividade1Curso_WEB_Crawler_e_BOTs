@@ -139,7 +139,7 @@ class Crawler:
 
         previsoes = []
 
-        tempmin = inicial.findAll('div', {'data-testid': 'SegmentLowTemp'})
+        '''tempmin = inicial.findAll('div', {'data-testid': 'SegmentLowTemp'})
         tempmin = tempmin[0:3]
 
         for i in range(len(tempmin)):
@@ -155,7 +155,7 @@ class Crawler:
         for i in range(len(tempmax)):
             tempmax[i] = tempmax[i].text
             tempmax[i] = int(tempmax[i].strip('°º '))
-            tempmax[i] = round((tempmax[i] - 32) * 5 / 9)
+            tempmax[i] = round((tempmax[i] - 32) * 5 / 9)'''
 
         chancechuva = inicial.findAll('span', {'class': 'Column--precip--3JCDO'})
         chancechuva = chancechuva[9:12]
@@ -173,8 +173,8 @@ class Crawler:
 
         for i in range(3):
             previsao_dia = {
-                'tmax': tempmax[i],
-                'tmin': tempmin[i],
+                #'tmax': tempmax[i],
+                #'tmin': tempmin[i],
                 'chuva': chancechuva[i]
             }
             previsoes.append(previsao_dia)
@@ -188,6 +188,7 @@ class Crawler:
 
     def procura_em_tutiempo(self):
         inicial = self.info('https://pt.tutiempo.net/indice-ultravioleta/feira-de-santana.html')
+        inicial_t = self.info('https://pt.tutiempo.net/feira-de-santana.html')
 
         previsoes = []
 
@@ -197,24 +198,44 @@ class Crawler:
 
         horas = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16]  # horas que aparecem no site para cada valor UV
 
+        tempmax = inicial_t.findAll('span', {'class': 't max'})
+        tempmax = tempmax[0:3]
+
+        tempmin = inicial_t.findAll('span', {'class': 't min'})
+        tempmin = tempmin[0:3]
+
         for i in range(len(ind_uv)):
+            tempmax[i] = tempmax[i].text
+            tempmax[i] = int(tempmax[i].strip('°º '))
+
+            tempmin[i] = tempmin[i].text
+            tempmin[i] = int(tempmin[i].strip('°º '))
+
             for h in range(len(ind_uv[i])):
                 ind_uv[i][h] = int(ind_uv[i][h].text)
 
             previsao_dia = {
+                'tmax': tempmax[i],
+                'tmin': tempmin[i],
                 'ind_uv': max(ind_uv[i]),
                 'h_uv': horas[ind_uv[i].index(max(ind_uv[i]))]  # usa o indice do uv maximo para saber a hora
                 # hora do maximo indicie UV do dia
+
             }
 
             previsoes.append(previsao_dia)
 
+        print('tutiempo:')
+        for i in previsoes:
+            print(i)
+
         return previsoes
 
     # organiza as informações dos sites em uma só lista fazendo a média das temperaturas e chances de chuva
-    def organiza_informacoes(self):  # g1 dava valores muito diferentes para temperatura, por isso foi tirado
-        info = [self.procura_em_tempo(), self.procura_em_cptec(), self.procura_em_wather(),
-                self.procura_em_tutiempo()]
+    def organiza_informacoes(self):
+        # g1 dava valores muito diferentes para temperatura, por isso foi tirado
+        # o mesmo para o weather e tempo
+        info = [self.procura_em_cptec(), self.procura_em_wather(), self.procura_em_tutiempo()]
         info_organizada = []
         dias = [(date.today().strftime('%d-%m-%Y')), 'amanha', 'depois']
 

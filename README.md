@@ -1,8 +1,11 @@
 Feito para um curso de web crawling e bot no twitter/X
 
+[perfil no twitter/x](https://twitter.com/PrevisaoTempFSA)
+
+
 - [bibliotecas](#bibliotecas)
 
-informacçõs retiradas dos sites Tempo, cptec, weather, g1 e accuweather
+informacçõs retiradas dos sites Tempo, cptec, weather e accuweather
 
 
   
@@ -19,4 +22,5 @@ informacçõs retiradas dos sites Tempo, cptec, weather, g1 e accuweather
 - bealtifulsoup4
 - requests
 - datetime
+- schadule
 - schadule

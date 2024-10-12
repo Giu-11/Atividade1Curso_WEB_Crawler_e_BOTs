@@ -135,29 +135,34 @@ class Crawler:
         return previsoes
 
     def procura_em_weather(self):
-        inicial = self.info('https://weather.com/weather/today/l/-12.25,-38.96')
+        inicial = self.info('https://weather.com/weather/today/l/ee246b22655e20e276a44c5bf48c45cf8a5ca72e7517e6463d8958135cfc8077')
 
         previsoes = []
 
-        '''tempmin = inicial.findAll('div', {'data-testid': 'SegmentLowTemp'})
+        tempmin = inicial.findAll('div', {'data-testid': 'SegmentLowTemp'})
         tempmin = tempmin[0:3]
 
         for i in range(len(tempmin)):
             tempmin[i] = tempmin[i].text
+            print(tempmin[i])
             tempmin[i] = int(tempmin[i].strip('°º '))
             tempmin[i] = round((tempmin[i] - 32) * 5 / 9)
             # esse site devolve as temperaturas em Fahrenheit
             # podem ter leves variações na temperatura que o código mostra e o que aparece no site
 
         tempmax = inicial.findAll('div', {'data-testid': 'SegmentHighTemp'})
-        tempmax = tempmax[10:13]
+        tempmax = tempmax[10:12]
 
         for i in range(len(tempmax)):
-            tempmax[i] = tempmax[i].text
+            #FIXME parece ter um erro com a 1 posição da temp maxima
+            tempmax[i] = tempmax[i].text[:2]
+            print(tempmax[i])
             tempmax[i] = int(tempmax[i].strip('°º '))
-            tempmax[i] = round((tempmax[i] - 32) * 5 / 9)'''
+            tempmax[i] = round((tempmax[i] - 32) * 5 / 9)
+        if len(tempmax)!=3:
+            tempmax.insert(0, tempmax[1])
 
-        chancechuva = inicial.findAll('span', {'class': 'Column--precip--3JCDO'})
+        chancechuva = inicial.findAll('span', {'class': 'Column--precip--YkErk'})
         chancechuva = chancechuva[9:12]
         for i in range(len(chancechuva)):
             chancechuva[i] = chancechuva[i].text
@@ -173,8 +178,8 @@ class Crawler:
 
         for i in range(3):
             previsao_dia = {
-                #'tmax': tempmax[i],
-                #'tmin': tempmin[i],
+                'tmax': tempmax[i],
+                'tmin': tempmin[i],
                 'chuva': chancechuva[i]
             }
             previsoes.append(previsao_dia)
@@ -246,6 +251,21 @@ class Crawler:
         # g1 dava valores muito diferentes para temperatura, por isso foi tirado
         # o mesmo para o weather e tempo
         info = [self.procura_em_cptec(), self.procura_em_weather(), self.procura_em_tutiempo()]
+        try:
+            info.append(self.procura_em_cptec())
+        except:
+            print("deu ruim cptec")
+
+        try:
+            info.append(self.procura_em_weather())
+        except:
+            print("deu ruim weather")
+
+        try:
+            info.append(self.procura_em_tutiempo())
+        except:
+            print("deu ruim tutiempo")
+
         info_organizada = []
         dias = [(date.today().strftime('%d-%m-%Y')), 'amanha', 'depois']
 
@@ -272,18 +292,15 @@ class Crawler:
                     previsao_dia['h_uv'] = site[dia]['h_uv']
                     n_sites_uv += 1
 
-            previsao_dia['tmax'] //= n_sites_temp
-            previsao_dia['tmin'] //= n_sites_temp
-            previsao_dia['chuva'] //= n_sites_chuva
-            previsao_dia['ind_uv'] //= n_sites_uv
+            if n_sites_temp > 0:
+                previsao_dia['tmax'] //= n_sites_temp
+                previsao_dia['tmin'] //= n_sites_temp
 
-            # a formatação dos valores agora será no bot.py
-            '''
-            previsao_dia['tmax'] = str(previsao_dia['tmax']) + '°'
+            if n_sites_chuva > 0:
+                previsao_dia['chuva'] //= n_sites_chuva
 
-            previsao_dia['tmin'] = str(previsao_dia['tmin']) + '°'
-
-            previsao_dia['chuva'] = str(previsao_dia['chuva']) + '%' '''
+            if n_sites_uv > 0:
+                previsao_dia['ind_uv'] //= n_sites_uv
 
             info_organizada.append(previsao_dia)
 
@@ -291,7 +308,6 @@ class Crawler:
         for i in info_organizada:
             print(i)
 
-        # por enquanto não da return nas informações, deve ser colocado depois para que outra função coloque no banco
         return info_organizada
 
     def tarefas_diarias(self, db, bot):
@@ -310,7 +326,7 @@ if __name__ == '__main__':
 
     #aa = crawler.procura_em_cptec()
 
-    aa= crawler.procura_em_tutiempo()
+    aa= crawler.procura_em_weather()
 
     """previsoes = crawler.organiza_informacoes()
     for dia in previsoes:

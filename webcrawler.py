@@ -134,7 +134,7 @@ class Crawler:
 
         return previsoes
 
-    def procura_em_wather(self):
+    def procura_em_weather(self):
         inicial = self.info('https://weather.com/weather/today/l/-12.25,-38.96')
 
         previsoes = []
@@ -192,37 +192,47 @@ class Crawler:
 
         previsoes = []
 
-        ind_uv_h = inicial.findAll('span', {'class': 'ener'})
+        ind_uv_h = inicial.findAll('span', {'class': 'huv'})
 
-        ind_uv = [ind_uv_h[0:10], ind_uv_h[10:20], ind_uv_h[20:30]]
+        ind_uv_v = inicial.findAll('span', {'class': 'vuv'})
 
-        horas = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16]  # horas que aparecem no site para cada valor UV
+        #print(ind_uv_v, "\n", ind_uv_h)
 
-        tempmax = inicial_t.findAll('span', {'class': 't max'})
-        tempmax = tempmax[0:3]
+        for i in range(len(ind_uv_v)):
+            ind_uv_v[i] = ind_uv_v[i].text
+            ind_uv_v[i] = int(ind_uv_v[i].strip('<span class="vuv"></span>'))
 
-        tempmin = inicial_t.findAll('span', {'class': 't min'})
-        tempmin = tempmin[0:3]
+            ind_uv_h[i] = ind_uv_h[i].text
+            ind_uv_h[i] = int(ind_uv_h[i].strip('<span class="huv"></span>::')[:2])
 
-        for i in range(len(ind_uv)):
-            tempmax[i] = tempmax[i].text
-            tempmax[i] = int(tempmax[i].strip('°º '))
+        ind_uv_h = [ind_uv_h[:9], ind_uv_h[9:19], ind_uv_h[19:29]]
+        ind_uv_v = [ind_uv_v[:9], ind_uv_v[9:19], ind_uv_v[19:29]]
 
-            tempmin[i] = tempmin[i].text
-            tempmin[i] = int(tempmin[i].strip('°º '))
+        #print(ind_uv_v, "\n", ind_uv_h)
+        temp = [inicial_t.findAll('div', {'class': 'dn1 sel'})[0],
+                inicial_t.findAll('div', {'class': 'dn2'})[0],
+                inicial_t.findAll('div', {'class': 'dn3'})[0]]
+        #print(temp)
 
-            for h in range(len(ind_uv[i])):
-                ind_uv[i][h] = int(ind_uv[i][h].text)
+        tmax = []
+        tmin = []
+        for i in range(len(temp)):
+            temp[i] = temp[i].text[10:].lower().strip("abcdefghijklmnopqrstuvwxyz°°°º  ")
+            tmax.append(int(temp[i][:2]))
+            tmin.append(int(temp[i][3:]))
+            #print(temp[i])
+
+        for i in range(3):
+            print(ind_uv_h[i])
+            print(ind_uv_v[i])
 
             previsao_dia = {
-                'tmax': tempmax[i],
-                'tmin': tempmin[i],
-                'ind_uv': max(ind_uv[i]),
-                'h_uv': horas[ind_uv[i].index(max(ind_uv[i]))]  # usa o indice do uv maximo para saber a hora
+                'tmax': tmax[i],
+                'tmin': tmin[i],
+                'ind_uv': max(ind_uv_v[i]),
+                'h_uv': ind_uv_h[i][ind_uv_v[i].index(max(ind_uv_v[i]))]  # usa o indice do uv maximo para saber a hora
                 # hora do maximo indicie UV do dia
-
             }
-
             previsoes.append(previsao_dia)
 
         print('tutiempo:')
@@ -235,7 +245,7 @@ class Crawler:
     def organiza_informacoes(self):
         # g1 dava valores muito diferentes para temperatura, por isso foi tirado
         # o mesmo para o weather e tempo
-        info = [self.procura_em_cptec(), self.procura_em_wather(), self.procura_em_tutiempo()]
+        info = [self.procura_em_cptec(), self.procura_em_weather(), self.procura_em_tutiempo()]
         info_organizada = []
         dias = [(date.today().strftime('%d-%m-%Y')), 'amanha', 'depois']
 
@@ -298,16 +308,20 @@ if __name__ == '__main__':
     db = Database()
     bot = BOT()
 
-    previsoes = crawler.organiza_informacoes()
+    #aa = crawler.procura_em_cptec()
+
+    aa= crawler.procura_em_tutiempo()
+
+    """previsoes = crawler.organiza_informacoes()
     for dia in previsoes:
         db.nova_previsao(dia)
-        print('foi', dia)
+        print('foi', dia)"""
 
-    bot.post(previsoes[0])
+    #bot.post(previsoes[0])
 
     # por enquanto o agendamento do horário está como comentário para facilitar testes, mas está funcionando!
     '''
-    schedule.every().day.at("05:00").do(crawler.tarefas_diarias, db, bot)  # pega a previsão do tempo as 05h
+    schedule.every().day.at("05:03").do(crawler.tarefas_diarias, db, bot)  # pega a previsão do tempo as 05h
 
     while True:
         schedule.run_pending()

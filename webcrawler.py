@@ -144,7 +144,7 @@ class Crawler:
 
         for i in range(len(tempmin)):
             tempmin[i] = tempmin[i].text
-            print(tempmin[i])
+            #print(tempmin[i])
             tempmin[i] = int(tempmin[i].strip('°º '))
             tempmin[i] = round((tempmin[i] - 32) * 5 / 9)
             # esse site devolve as temperaturas em Fahrenheit
@@ -156,7 +156,7 @@ class Crawler:
         for i in range(len(tempmax)):
             #FIXME parece ter um erro com a 1 posição da temp maxima
             tempmax[i] = tempmax[i].text[:2]
-            print(tempmax[i])
+            #print(tempmax[i])
             tempmax[i] = int(tempmax[i].strip('°º '))
             tempmax[i] = round((tempmax[i] - 32) * 5 / 9)
         if len(tempmax)!=3:
@@ -228,8 +228,8 @@ class Crawler:
             #print(temp[i])
 
         for i in range(3):
-            print(ind_uv_h[i])
-            print(ind_uv_v[i])
+            #print(max(ind_uv_v[i]))
+            #print(ind_uv_h[i][ind_uv_v[i].index(max(ind_uv_v[i]))])
 
             previsao_dia = {
                 'tmax': tmax[i],
@@ -250,7 +250,8 @@ class Crawler:
     def organiza_informacoes(self):
         # g1 dava valores muito diferentes para temperatura, por isso foi tirado
         # o mesmo para o weather e tempo
-        info = [self.procura_em_cptec(), self.procura_em_weather(), self.procura_em_tutiempo()]
+        #info = [self.procura_em_cptec(), self.procura_em_weather(), self.procura_em_tutiempo()]
+        info=[]
         try:
             info.append(self.procura_em_cptec())
         except:
@@ -292,6 +293,8 @@ class Crawler:
                     previsao_dia['h_uv'] = site[dia]['h_uv']
                     n_sites_uv += 1
 
+            #print(previsao_dia)
+
             if n_sites_temp > 0:
                 previsao_dia['tmax'] //= n_sites_temp
                 previsao_dia['tmin'] //= n_sites_temp
@@ -301,6 +304,8 @@ class Crawler:
 
             if n_sites_uv > 0:
                 previsao_dia['ind_uv'] //= n_sites_uv
+
+            #print(previsao_dia)
 
             info_organizada.append(previsao_dia)
 
@@ -326,14 +331,14 @@ if __name__ == '__main__':
 
     #aa = crawler.procura_em_cptec()
 
-    aa= crawler.procura_em_weather()
+    #aa= crawler.organiza_informacoes()
 
-    """previsoes = crawler.organiza_informacoes()
+    previsoes = crawler.organiza_informacoes()
     for dia in previsoes:
         db.nova_previsao(dia)
-        print('foi', dia)"""
+        print('foi', dia)
 
-    #bot.post(previsoes[0])
+    bot.post(previsoes[0])
 
     # por enquanto o agendamento do horário está como comentário para facilitar testes, mas está funcionando!
     '''
